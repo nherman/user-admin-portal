@@ -19,25 +19,25 @@ public class User {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(name = "first_name")
+	@Column(name = "first_name", nullable = false, length = 100)
 	private String firstName;
 
-	@Column(name = "last_name")
+	@Column(name = "last_name", nullable = false, length = 100)
 	private String lastName;
 
-	@Column(name = "email")
+	@Column(name = "email", nullable = false, unique = true, length = 254)
 	private String email;
 
-	@Column(name = "role")
+	@Column(name = "role", nullable = false, length = 50)
 	private String role;
 
-	@Column(name = "status")
+	@Column(name = "status", nullable = false, length = 50)
 	private String status;
 
-	@Column(name = "created_at")
+	@Column(name = "created_at", nullable = false)
 	private Instant createdAt;
 
-	@Column(name = "modified_at")
+	@Column(name = "modified_at", nullable = false)
 	private Instant modifiedAt;
 
 	public User() {
