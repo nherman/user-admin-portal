@@ -1,3 +1,7 @@
+volumes:
+  postgres_data:
+  mongo_data:
+    
 services:
   postgres:
     image: postgres:15-alpine
@@ -19,6 +23,10 @@ services:
     volumes:
       - mongo_data:/data/db
 
-volumes:
-  postgres_data:
-  mongo_data:
+rabbitmq:
+  image: rabbitmq:3-management
+  container_name: user-admin-rabbitmq
+  ports:
+    - "5672:5672"
+    - "15672:15672"
+
