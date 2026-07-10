@@ -1,5 +1,6 @@
 package com.nherman.useradminportal.service;
 
+import java.time.Instant;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -8,6 +9,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.nherman.useradminportal.dto.UserRequest;
 import com.nherman.useradminportal.dto.UserResponse;
+import com.nherman.useradminportal.messaging.ActivityEventMessage;
+import com.nherman.useradminportal.messaging.ActivityEventPublisher;
 import com.nherman.useradminportal.model.User;
 import com.nherman.useradminportal.repository.UserRepository;
 
@@ -15,9 +18,11 @@ import com.nherman.useradminportal.repository.UserRepository;
 public class UserService {
 
 	private final UserRepository userRepository;
+	private final ActivityEventPublisher activityEventPublisher;
 
-	public UserService(UserRepository userRepository) {
+	public UserService(UserRepository userRepository, ActivityEventPublisher activityEventPublisher) {
 		this.userRepository = userRepository;
+		this.activityEventPublisher = activityEventPublisher;
 	}
 
 	public List<UserResponse> findAll() {
@@ -34,18 +39,23 @@ public class UserService {
 	public UserResponse create(UserRequest request) {
 		User user = new User();
 		applyRequest(user, request);
-		return toResponse(userRepository.save(user));
+		User saved = userRepository.save(user);
+		publishActivity("USER_CREATED", saved);
+		return toResponse(saved);
 	}
 
 	public UserResponse update(Long id, UserRequest request) {
 		User user = findUser(id);
 		applyRequest(user, request);
-		return toResponse(userRepository.save(user));
+		User saved = userRepository.save(user);
+		publishActivity("USER_UPDATED", saved);
+		return toResponse(saved);
 	}
 
 	public void delete(Long id) {
 		User user = findUser(id);
 		userRepository.delete(user);
+		publishActivity("USER_DELETED", user);
 	}
 
 	private User findUser(Long id) {
@@ -59,6 +69,14 @@ public class UserService {
 		user.setEmail(request.email());
 		user.setRole(request.role());
 		user.setStatus(request.status());
+	}
+
+	private void publishActivity(String action, User user) {
+		activityEventPublisher.publish(new ActivityEventMessage(
+				action,
+				user.getId(),
+				user.getEmail(),
+				Instant.now()));
 	}
 
 	private UserResponse toResponse(User user) {
